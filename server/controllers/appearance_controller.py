@@ -1,11 +1,32 @@
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from app import db
+from models.appearance import Appearance
+from models.guest import Guest
+from models.episode import Episode
 
-class Appearance(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    rating = db.Column(db.Integer, nullable=False)
-    guest_id = db.Column(db.Integer, db.ForeignKey('guest.id'), nullable=False)
-    episode_id = db.Column(db.Integer, db.ForeignKey('episode.id'), nullable=False)
+appearance_bp = Blueprint('appearances', __name__)
 
-    __table_args__ = (
-        db.CheckConstraint('rating >= 1 AND rating <= 5', name='rating_range'),
+@appearance_bp.route('/appearances', methods=['POST'])
+@jwt_required()
+def create_appearance():
+    data = request.get_json()
+    if not data or not all(k in data for k in ['rating', 'guest_id', 'episode_id']):
+        return jsonify({"message": "Missing required fields"}), 400
+
+    if not (1 <= data['rating'] <= 5):
+        return jsonify({"message": "Rating must be between 1 and 5"}), 400
+
+    if not Guest.query.get(data['guest_id']):
+        return jsonify({"message": "Guest not found"}), 404
+    if not Episode.query.get(data['episode_id']):
+        return jsonify({"message": "Episode not found"}), 404
+
+    appearance = Appearance(
+        rating=data['rating'],
+        guest_id=data['guest_id'],
+        episode_id=data['episode_id']
     )
+    db.session.add(appearance)
+    db.session.commit()
+    return jsonify({"message": "Appearance created successfully"}), 201
