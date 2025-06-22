@@ -2,7 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from .config import Config
+from server.config import Config  # Absolute import
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -12,8 +12,8 @@ migrate = Migrate(app, db)
 jwt = JWTManager(app)
 
 # Import models and controllers
-from models import guest, episode, appearance, user
-from controllers import guest_controller, episode_controller, appearance_controller, auth_controller
+from server.models import guest, episode, appearance, user
+from server.controllers import guest_controller, episode_controller, appearance_controller, auth_controller
 
 # Register blueprints
 app.register_blueprint(auth_controller.auth_bp)
