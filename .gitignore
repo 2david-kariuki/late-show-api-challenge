@@ -4,4 +4,5 @@ __pycache__/
 .env
 *.sqlite3
 migrations/
-Pipfile.lock.env
+Pipfile.lock
+.venv/
